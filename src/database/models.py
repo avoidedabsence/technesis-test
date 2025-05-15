@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, ForeignKey, Dec
+from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from typing import List
@@ -86,6 +86,6 @@ class User(Base):
     
     sites = relationship(
         "Site",
-        ondelete="CASCADE",
-        onupdate="RESTRICT"
+        cascade="all, delete-orphan",
+        lazy="subquery"
     )

@@ -2,3 +2,4 @@
 *.db
 .gitignore
 .dockerignore
+__pycache__

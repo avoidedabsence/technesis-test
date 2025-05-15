@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.future import select
 from loguru import logger
 from typing import Any
+from urllib.parse import urlparse
 
 from database.models import Base, Site, Item, User
 
@@ -61,6 +62,57 @@ class Database:
             return result
         
     @classmethod
-    async def create_items():
-        ...
+    async def create_item_and_site_if_not_exists(cls, user_id: int, item: dict):
+        async with cls._sessionmaker() as session:
+            try:
+                domain_name = urlparse(item["url"]).netloc
+        
+                exists = (await session.execute(
+                    select(Site).where(Site.domain == domain_name and Site.user_id == user_id)
+                )).fetchone()
+                
+                if not exists:
+                    site = Site(
+                        domain=domain_name,
+                        user_id=user_id
+                    )
+                    session.add(site)
+                    
+                    await session.commit()
+                    await session.refresh(site)
+                    
+                    site_id = site.id
+                else:
+                    site_id = exists[0].id
+                
+                item_obj = Item(
+                    site_id=site_id,
+                    title=item['title'],
+                    url=item['url'],
+                    xpath=item['xpath'],
+                    price=item['price']
+                )
+                
+                session.add(item_obj)
+                    
+                await session.commit()
+                await session.refresh(item_obj)
+                
+                return item_obj
+            except Exception as e:
+                logger.error('failed to create item {}, exc {}', item, exc)
+                return None
+            
+                            
+        
+        
+    @classmethod
+    async def create_items(cls, items_list: list[dict | None]) -> list[Item]:
+        items = []
+        for item in items_list:
+            if item is None:
+                continue
+            result = await cls.create_item_and_site_if_not_exists(item)
+            items.append(result)
+        return items
     

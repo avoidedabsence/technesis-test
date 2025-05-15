@@ -11,7 +11,7 @@ class _Config:
     
     CONCURRENT_REQUESTS: int
     
-    def _init() -> _Config | None:
+    def _init():
         load_dotenv()
         
         token = getenv('BOT_TOKEN', None)
@@ -33,4 +33,4 @@ class _Config:
             CONCURRENT_REQUESTS=concur_reqs
         )
         
-Config = _Config.init()
+Config = _Config._init()

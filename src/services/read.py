@@ -5,10 +5,10 @@ from database.models import Item
 from utils.exceptions import CustomException
 
 
-def read_file(file_path: str) -> List[List[str | None]]:
+def read_file(file_path: str) -> dict:
     df = validate_file(file_path)
     
-    return df.values.tolist()
+    return df.to_dict()
     
     
 def validate_file(file_path: str) -> pd.DataFrame:

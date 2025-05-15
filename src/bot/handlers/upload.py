@@ -5,7 +5,10 @@ from aiogram.fsm.state import State, StatesGroup
 from bot.keyboards import cancel_fsm_keyboard
 from bot.handlers.command import start_command
 from services.read import read_file
+from services.parse import parse_items
+from utils.ag_utils import safe_edit_text
 from utils.exceptions import CustomException
+from database.dao import Database
 
 import asyncio
 
@@ -35,7 +38,7 @@ async def upload_file_handler(callback_query: CallbackQuery, state: FSMContext):
     )
     
 
-async def validate_and_save_file_handler(message: Message, state: FSMContext):
+async def process_file_handler(message: Message, state: FSMContext):
     file = message.document
     
     fail_keyboard = cancel_fsm_keyboard()
@@ -68,6 +71,16 @@ async def validate_and_save_file_handler(message: Message, state: FSMContext):
             reply_markup=fail_keyboard
         )
         return
+    
+    parsed_items = await parse_items(data)
+    
+    count_none = parsed_items.count(None)
+    
+    items = await Database.create_items(parsed_items)
+    
+    text = ["Следующие товары были успешно загружены:\n\n"] + [f'{item.title}: {item.price} RUB\n'] + [f"Загрузка {count_none} предметов окончилась неудачей."]
+    
+    await message.answer(text)
     
     
     

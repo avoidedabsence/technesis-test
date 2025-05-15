@@ -16,7 +16,8 @@ dependencies = [
     "dotenv (>=0.9.9,<0.10.0)",
     "loguru (>=0.7.3,<0.8.0)",
     "fake-useragent (>=2.2.0,<3.0.0)",
-    "lxml (>=5.4.0,<6.0.0)"
+    "lxml (>=5.4.0,<6.0.0)",
+    "sqlalchemy (>=2.0.41,<3.0.0)"
 ]
 
 [tool.poetry]
