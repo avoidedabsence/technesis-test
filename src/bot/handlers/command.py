@@ -16,7 +16,6 @@ async def start_command(event):
             reply_markup=keyboard
         )
     else:
-        
         keyboard = await main_menu_keyboard(event.from_user.id)
         
         await safe_edit_text(

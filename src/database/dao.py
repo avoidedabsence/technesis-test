@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from loguru import logger
 from typing import Any
 from urllib.parse import urlparse
+import asyncio
 
 from database.models import Base, Site, Item, User
 
@@ -24,7 +26,7 @@ class Database:
         )
         
     @classmethod
-    async def close():
+    async def close(cls):
         if cls._engine:
             await cls._engine.dispose()
             logger.info("db._engine closed w/ success;")
@@ -58,11 +60,27 @@ class Database:
             if result is None:
                 logger.error("failed to retrieve existing user:{};", user_id)
                 return None
-            
             return result
-        
+    
     @classmethod
-    async def create_item_and_site_if_not_exists(cls, user_id: int, item: dict):
+    async def get_items_grouped_by_domain(cls, user_id: int) -> dict | None:
+        async with cls._sessionmaker() as session:
+            result = await session.execute(
+                select(User).where(User.user_id == user_id)
+            )
+            result = result.scalar_one_or_none()
+            
+            if result is None:
+                logger.error("failed to retrieve existing user:{};", user_id)
+                return None
+            
+            return {site.domain: site.items for site in result.sites}
+    
+    @classmethod
+    async def create_item_and_sitef_not_exists(cls, user_id: int, item: dict):
+        if item['price'] is None:
+            return None
+        
         async with cls._sessionmaker() as session:
             try:
                 domain_name = urlparse(item["url"]).netloc
@@ -103,16 +121,11 @@ class Database:
                 logger.error('failed to create item {}, exc {}', item, exc)
                 return None
             
-                            
-        
-        
+
     @classmethod
-    async def create_items(cls, items_list: list[dict | None]) -> list[Item]:
-        items = []
-        for item in items_list:
-            if item is None:
-                continue
-            result = await cls.create_item_and_site_if_not_exists(item)
-            items.append(result)
-        return items
+    async def create_items(cls, user_id: int, items_list: dict) -> list[Item]:
+        tasks = []
+        for _, item in items_list.items():
+            tasks.append(cls.create_item_and_site_if_not_exists(user_id, item))
+        return await asyncio.gather(*tasks) # wont do much bcs sqlite :D
     

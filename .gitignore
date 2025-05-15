@@ -3,3 +3,4 @@
 .gitignore
 .dockerignore
 __pycache__
+src/cache/*

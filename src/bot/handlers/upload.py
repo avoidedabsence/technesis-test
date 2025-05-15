@@ -2,10 +2,10 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from bot.keyboards import cancel_fsm_keyboard
+from bot.keyboards import cancel_fsm_keyboard, return_keyboard
 from bot.handlers.command import start_command
 from services.read import read_file
-from services.parse import parse_items
+from services.item_parser import parse_items
 from utils.ag_utils import safe_edit_text
 from utils.exceptions import CustomException
 from database.dao import Database
@@ -40,12 +40,12 @@ async def upload_file_handler(callback_query: CallbackQuery, state: FSMContext):
 
 async def process_file_handler(message: Message, state: FSMContext):
     file = message.document
-    
+
     fail_keyboard = cancel_fsm_keyboard()
     
     if file is None:
         await message.answer(
-            "К вашему сообщению не прикреплен файл.\n\nПопробуйте еще раз.",
+            "К вашему сообщению не прикреплен файл\.\n\nПопробуйте еще раз\.",
             reply_markup=fail_keyboard
         )
         return
@@ -54,33 +54,33 @@ async def process_file_handler(message: Message, state: FSMContext):
         'xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'
     ):
         await message.answer(
-            "Ваш файл имеет неподходящее расширение.\n\nПопробуйте еще раз.",
+            "Ваш файл имеет неподходящее расширение\.\n\nПопробуйте еще раз\.",
             reply_markup=fail_keyboard
         )
         return
-    
 
-    destination = f"cache/{message.from_user.id}/{file.file_name}"    
+    destination = f"src/cache/{file.file_name}"
     await message.bot.download(file.file_id, destination=destination)
-    
+
     try:
-        data = await asyncio.to_thread(read_file, file_path=destination)
+        data = await asyncio.to_thread(read_file, user_id=message.from_user.id, file_path=destination)
     except CustomException as e:
         await message.answer(
-            f"Файл вызвал ошибку при чтении: {e}.\n\nПопробуйте еще раз.",
+            f"Файл вызвал ошибку при чтении\: {e}\.\n\nПопробуйте еще раз\.",
             reply_markup=fail_keyboard
         )
         return
+    
+    await message.answer("Ожидайте\. В среднем\, обработка файла занимает 30 секунд\.")
     
     parsed_items = await parse_items(data)
     
-    count_none = parsed_items.count(None)
+    items = await Database.create_items(message.from_user.id, parsed_items)
     
-    items = await Database.create_items(parsed_items)
+    text = ["Следующие товары были успешно загружены\:\n\n"] + \
+        [f'{item.title} \(site\_id {item.site_id}\) \: {item.price} RUB\n' for item in items if item is not None]
     
-    text = ["Следующие товары были успешно загружены:\n\n"] + [f'{item.title}: {item.price} RUB\n'] + [f"Загрузка {count_none} предметов окончилась неудачей."]
-    
-    await message.answer(text)
+    await message.answer(''.join(text), reply_markup=return_keyboard())
     
     
     

@@ -22,14 +22,12 @@ class Site(Base):
     
     user_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id", onupdate="RESTRICT", ondelete="CASCADE"),
+        ForeignKey("users.user_id", onupdate="RESTRICT", ondelete="CASCADE"),
         nullable=False
     )
 
     items: Mapped[List["Item"]] = relationship(
-        "Item",
         cascade="all, delete-orphan",
-        passive_deletes=True,
         lazy="subquery"
     )
 
@@ -84,8 +82,7 @@ class User(Base):
         nullable=False
     )
     
-    sites = relationship(
-        "Site",
+    sites: Mapped[List["Site"]] = relationship(
         cascade="all, delete-orphan",
         lazy="subquery"
     )

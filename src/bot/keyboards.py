@@ -36,7 +36,18 @@ def cancel_fsm_keyboard() -> InlineKeyboardMarkup:
             callback_data=f'cancel_fsm'
         )
     )
-    ...
+
+def return_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardBuilder()
+    
+    keyboard.row(
+        InlineKeyboardButton(
+            text=f'Вернуться в меню',
+            callback_data=f'start_command'
+        )
+    )
+    
+    return keyboard.as_markup()
     
     
     
