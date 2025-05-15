@@ -77,7 +77,7 @@ class Database:
             return {site.domain: site.items for site in result.sites}
     
     @classmethod
-    async def create_item_and_sitef_not_exists(cls, user_id: int, item: dict):
+    async def create_item_and_site_if_not_exists(cls, user_id: int, item: dict):
         if item['price'] is None:
             return None
         
