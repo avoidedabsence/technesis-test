@@ -79,6 +79,11 @@ async def process_file_handler(message: Message, state: FSMContext):
     
     text = ["Следующие товары были успешно загружены\:\n\n"] + \
         [f'{item.title} \(site\_id {item.site_id}\) \: {item.price} RUB\n' for item in items if item is not None]
+        
+    if len(text) == 1:
+        text.append(
+            "никакие \:c"
+        )
     
     await message.answer(''.join(text), reply_markup=return_keyboard())
     
