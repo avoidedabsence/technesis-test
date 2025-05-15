@@ -59,4 +59,8 @@ class Database:
                 return None
             
             return result
+        
+    @classmethod
+    async def create_items():
+        ...
     

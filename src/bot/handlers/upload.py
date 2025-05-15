@@ -4,6 +4,10 @@ from aiogram.fsm.state import State, StatesGroup
 
 from bot.keyboards import cancel_fsm_keyboard
 from bot.handlers.command import start_command
+from services.read import read_file
+from utils.exceptions import CustomException
+
+import asyncio
 
 class AddFile(StatesGroup):
     file: State = State()
@@ -41,6 +45,7 @@ async def validate_and_save_file_handler(message: Message, state: FSMContext):
             "К вашему сообщению не прикреплен файл.\n\nПопробуйте еще раз.",
             reply_markup=fail_keyboard
         )
+        return
     
     if file.file_name.split(".")[-1] not in (
         'xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'
@@ -49,6 +54,29 @@ async def validate_and_save_file_handler(message: Message, state: FSMContext):
             "Ваш файл имеет неподходящее расширение.\n\nПопробуйте еще раз.",
             reply_markup=fail_keyboard
         )
+        return
+    
+
+    destination = f"cache/{message.from_user.id}/{file.file_name}"    
+    await message.bot.download(file.file_id, destination=destination)
+    
+    try:
+        data = await asyncio.to_thread(read_file, file_path=destination)
+    except CustomException as e:
+        await message.answer(
+            f"Файл вызвал ошибку при чтении: {e}.\n\nПопробуйте еще раз.",
+            reply_markup=fail_keyboard
+        )
+        return
+    
+    
+    
+
+    
+    
+    
+    
+    
     
     
 
