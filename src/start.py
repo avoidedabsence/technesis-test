@@ -3,7 +3,9 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
 from loguru import logger
+
 from .config import Config
+from database.dao import Database
 
 class LoguruMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
@@ -14,6 +16,8 @@ class LoguruMiddleware(BaseMiddleware):
             raise
 
 async def entrypoint():
+    await Database.init(Config.DB_URL)
+    
     storage = MemoryStorage()
     
     bot = Bot(
@@ -30,4 +34,5 @@ async def entrypoint():
     
     dp.message.middleware(LoguruMiddleware())
     dp.callback_query.middleware(LoguruMiddleware())
+    
     

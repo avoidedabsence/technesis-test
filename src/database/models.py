@@ -1,9 +1,10 @@
-from sqlalchemy import Integer, String, ForeignKey
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
+from sqlalchemy import Integer, String, ForeignKey, Dec
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from typing import List
 
-Base = declarative_base(cls=AsyncAttrs)
+class Base(DeclarativeBase):
+    pass
 
 class Site(Base):
     __tablename__ = "sites"
@@ -21,6 +22,7 @@ class Site(Base):
     
     user_id: Mapped[int] = mapped_column(
         Integer,
+        ForeignKey("users.id", onupdate="RESTRICT", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -28,6 +30,7 @@ class Site(Base):
         "Item",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        lazy="subquery"
     )
 
 
@@ -61,11 +64,28 @@ class Item(Base):
         nullable=False
     )
     
-    price: Mapped[str] = mapped_column(
-        String,
+    price: Mapped[int] = mapped_column(
+        Integer,
         nullable=False
     )
 
-    site: Mapped[Site] = relationship(
-        "Site"
+class User(Base):
+    __tablename__ = "users"
+    
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        unique=True
+    )
+    
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        unique=True,
+        nullable=False
+    )
+    
+    sites = relationship(
+        "Site",
+        ondelete="CASCADE",
+        onupdate="RESTRICT"
     )
