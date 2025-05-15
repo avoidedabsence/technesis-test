@@ -59,7 +59,7 @@ async def process_file_handler(message: Message, state: FSMContext):
         )
         return
 
-    destination = f"src/cache/{file.file_name}"
+    destination = f"cache/{file.file_name}"
     await message.bot.download(file.file_id, destination=destination)
 
     try:
