@@ -1,4 +1,4 @@
-FROM python:slim
+FROM python:latest
 
 ARG YOUR_ENV
 ARG DB_PATH
