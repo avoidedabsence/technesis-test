@@ -23,7 +23,7 @@ class _Config:
             return None
 
         concur_reqs = int(concur_reqs)
-        db_url = "sqlite+aiosqlite:///" + db_path
+        db_url = "sqlite+aiosqlite:////src/" + db_path + "/app.db"
         db_sync_url = db_url.replace("+aiosqlite", "")
         
         return _Config(
